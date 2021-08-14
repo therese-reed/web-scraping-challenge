@@ -1,6 +1,6 @@
 from flask import Flask, render_template,redirect
 from flask_pymongo import PyMongo
-import scrape_mars
+import mars_scrape
 
 app = Flask(__name__)
 
@@ -16,7 +16,7 @@ def index():
 @app.route("/scrape")
 def scrape():
     mars_data = mongo.db.mars_data
-    mars_info = scrape_mars.scrape()
+    mars_info = mars_scrape.scrape()
     mars_data.update({},mars_info, upsert = True)
     return redirect("/", code=302)
 

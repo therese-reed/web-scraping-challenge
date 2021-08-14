@@ -3,9 +3,10 @@ import pandas as pd
 import time
 from splinter import Browser
 import requests
+from webdriver_manager.chrome import ChromeDriverManager
 
 def init_browser():
-    executable_path = {'executable_path': '/usr/local/bin/chromedriver'}
+    executable_path = {'executable_path': ChromeDriverManager().install()}
     return Browser('chrome', **executable_path, headless=False)
 
 
@@ -35,45 +36,18 @@ def scrape(): # NASA Mars News
     Mars Img
     """
     # Navigate to the page
-    img_url = 'https://www.jpl.nasa.gov/spaceimages/?search=&category=Mars'
-    browser.visit(img_url)
-    time.sleep(4)
-    # Assign the HTML content of the page to a variable
-    imgs_html = browser.html
-    # Parse HTML with Beautifulsoup
-    soup = BeautifulSoup(imgs_html,'html.parser')
-
-    # Find the image url for the current Featured Mars Image
-    img_result = soup.find('article', class_="carousel_item")['style']
-    img_url = img_result.replace("background-image: url('","").replace("');","")
-    featured_image_url = f"https://www.jpl.nasa.gov{img_url}"
-
+    url_image = "https://spaceimages-mars.com/"
+    browser.visit(url_image)
+    browser.find_by_text(' FULL IMAGE').first.click()
+   #get image url using BeautifulSoup
+    html_image = browser.html
+    soup = BeautifulSoup(html_image, "html.parser")
+    img_url = soup.find("img", class_="fancybox-image")["src"]
+    featured_image_url = url_image + img_url
+ 
 
     """
-    Mars Weather
-    """
-    # Navigate to the page
-    weather_url = 'https://twitter.com/marswxreport?lang=en'
-    browser.visit(weather_url)
-    time.sleep(4)
-    # Assign the HTML content of the page to a variable
-    weather_html = browser.html
-    # Parse HTML with Beautifulsoup
-    soup = BeautifulSoup(weather_html, 'html.parser')
-
-    span_class = "css-901oao css-16my406 r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0"
-    results = soup.body.find_all("span", class_=span_class)
-
-    # Retrieve the latest Mars weather tweet from the page.
-    for index, result in enumerate(results):
-        if "InSight" in result.text:
-            mars_weather = result.text
-            break  # get the first result only
-        else:
-            pass
-    
-    
-    """
+   
     Mars_data
     """
     facts_url = 'https://space-facts.com/mars/'
@@ -96,7 +70,7 @@ def scrape(): # NASA Mars News
     # Navigate to the page
     hemisphere_url = 'https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars'
     browser.visit(hemisphere_url)
-    time.sleep(4)
+    time.sleep(1)
     # Assign the HTML content of the page to a variable
     hemisphere_html = browser.html
     # Parse HTML with Beautifulsoup
@@ -112,7 +86,7 @@ def scrape(): # NASA Mars News
         
         # Navigate to the page
         browser.visit(hemisphere_url)
-        time.sleep(4)
+        time.sleep(1)
         # Assign the HTML content of the page to a variable
         hemisphere_html = browser.html
         # Parse HTML with Beautifulsoup
@@ -125,12 +99,9 @@ def scrape(): # NASA Mars News
     
     
     mars_info = {
-        "mars_news": {
-            "news_title": news_title,
-            "news_p": news_p,
-            },
+        "news_title": news_title,
+        "news_p": news_p,
         "mars_img": featured_image_url,
-        "mars_weather": mars_weather,
         "mars_fact": mars_df,
         "mars_hemisphere": hemisphere_image_urls
     }
